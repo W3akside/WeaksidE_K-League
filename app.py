@@ -1,18 +1,16 @@
 import streamlit as st
 import pandas as pd
 
-# 페이지 설정
+# 1. 페이지 설정
 st.set_page_config(page_title="K-League Dashboard", page_icon="⚽", layout="wide")
 
-# 제목 및 서브 타이틀
 st.title("⚽ K리그 실시간 데이터 대시보드")
 st.write("본 서비스는 K리그1 및 K리그2의 순위 정보를 제공합니다.")
 
-# 1. 데이터 구성 (오타 수정 완료)
+# 2. 데이터 구성
 @st.cache_data
 def get_league_data():
-    # K리그1 데이터 (12개 팀)
-    k1_data = [
+    k1 = [
         {"순위": 1, "팀명": "울산 HD", "경기": 3, "승점": 9},
         {"순위": 2, "팀명": "강원 FC", "경기": 3, "승점": 7},
         {"순위": 3, "팀명": "FC 서울", "경기": 3, "승점": 6},
@@ -26,9 +24,7 @@ def get_league_data():
         {"순위": 11, "팀명": "대구 FC", "경기": 3, "승점": 1},
         {"순위": 12, "팀명": "김천 상무", "경기": 3, "승점": 0}
     ]
-    
-    # K리그2 데이터 (13개 팀)
-    k2_data = [
+    k2 = [
         {"순위": 1, "팀명": "수원 삼성", "경기": 3, "승점": 9},
         {"순위": 2, "팀명": "부산 아이파크", "경기": 3, "승점": 7},
         {"순위": 3, "팀명": "서울 이랜드", "경기": 3, "승점": 6},
@@ -43,12 +39,11 @@ def get_league_data():
         {"순위": 12, "팀명": "FC 안양", "경기": 3, "승점": 0},
         {"순위": 13, "팀명": "김포 FC", "경기": 3, "승점": 0}
     ]
-    return pd.DataFrame(k1_data), pd.DataFrame(k2_data)
+    return pd.DataFrame(k1), pd.DataFrame(k2)
 
-# 데이터 로드
 df1, df2 = get_league_data()
 
-# 2. 탭 구성
+# 3. 화면 탭 구성
 tab1, tab2 = st.tabs(["🏆 K리그1", "🥈 K리그2"])
 
 with tab1:
@@ -61,14 +56,12 @@ with tab2:
 
 st.divider()
 
-# 3. 하단 섹션
+# 4. 하단 정보
+st.subheader("🔗 관련 링크")
 col1, col2 = st.columns(2)
 with col1:
-    st.subheader("📺 경기 하이라이트")
-    st.video("https://www.youtube.com/watch?v=kY0vR6z-1pY")
-with col2:
-    st.subheader("🔗 관련 링크")
     st.link_button("네이버 스포츠 K리그", "https://sports.news.naver.com/kfootball/index")
+with col2:
     st.link_button("K리그 공식 홈페이지", "https://www.kleague.com/")
 
-st.caption("Last updated: 2026-03-16 | Data provided by W3ak
+st.caption("Last updated: 2026-03-16 | Created by W3akside Dashboard")
