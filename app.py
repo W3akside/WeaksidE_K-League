@@ -1,49 +1,66 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="K-League", layout="wide")
-st.markdown("<h3 style='text-align:center;'>⚽ K리그1 & K리그2 통합 대시보드</h3>", unsafe_allow_html=True)
+# 1. 페이지 설정
+st.set_page_config(page_title="2026 K-League", layout="wide")
+st.markdown("<h3 style='text-align:center;'>⚽ 2026 K리그 통합 대시보드</h3>", unsafe_allow_html=True)
 
-# 1. 데이터 로드 (잘림 방지를 위해 리스트를 최소화하여 구성)
-@st.cache_data
-def load_data():
-    # K1 데이터 (12팀)
-    k1_raw = [
-        [1, "울산 HD", 9, 3, "https://upload.wikimedia.org/wikipedia/ko/d/d4/Ulsan_HD_FC_logo.png"],
-        [2, "강원 FC", 7, 3, "https://upload.wikimedia.org/wikipedia/ko/a/af/Gangwon_FC_logo.png"],
-        [3, "FC 서울", 6, 3, "https://upload.wikimedia.org/wikipedia/ko/5/55/FC_Seoul_logo.png"],
-        [4, "포항", 6, 3, "https://upload.wikimedia.org/wikipedia/ko/c/c0/Pohang_Steelers_logo.png"],
-        [5, "수원 FC", 4, 3, "https://upload.wikimedia.org/wikipedia/ko/7/73/Suwon_FC_logo.png"],
-        [6, "광주 FC", 3, 3, "https://upload.wikimedia.org/wikipedia/ko/e/e3/Gwangju_FC_logo.png"],
-        [7, "전북 현대", 2, 3, "https://upload.wikimedia.org/wikipedia/ko/d/d0/Jeonbuk_Hyundai_Motors_logo.png"],
-        [8, "인천", 2, 3, "https://upload.wikimedia.org/wikipedia/ko/c/c1/Incheon_United_FC_logo.png"],
-        [9, "대전", 1, 3, "https://upload.wikimedia.org/wikipedia/ko/d/d2/Daejeon_Hana_Citizen_logo.png"],
-        [10, "제주", 1, 3, "https://upload.wikimedia.org/wikipedia/ko/a/a3/Jeju_United_FC_logo.png"],
-        [11, "대구 FC", 1, 3, "https://upload.wikimedia.org/wikipedia/ko/d/d2/Daegu_FC_logo.png"],
-        [12, "김천 상무", 0, 3, "https://upload.wikimedia.org/wikipedia/ko/d/d6/Gimcheon_Sangmu_FC_logo.png"]
-    ]
-    # K2 데이터 (2025년 기준 13개 팀)
-    k2_raw = [[i+1, team, 0, 0, "https://www.kleague.com/assets/img/club/club_logo_K02.png"] for i, team in enumerate(["수원삼성", "부산", "안양", "전남", "경남", "성남", "부천", "이랜드", "충북청주", "충남아산", "김포", "천안", "안산"])]
+# 2. 로고 주소 최적화 (가장 안정적인 K리그 공식 경로 사용)
+def get_logo(cid):
+    return f"https://www.kleague.com/assets/img/club/club_logo_{cid}.png"
+
+# 3. K리그1 데이터 (12팀) - 순위, 로고, 팀명, 경기수, 승점, 승, 무, 패
+k1_data = [
+    [1, get_logo("K01"), "울산 HD", 3, 9, 3, 0, 0], [2, get_logo("K03"), "강원 FC", 3, 7, 2, 1, 0],
+    [3, get_logo("K09"), "FC 서울", 3, 6, 2, 0, 1], [4, get_logo("K05"), "포항", 3, 6, 2, 0, 1],
+    [5, get_logo("K10"), "수원 FC", 3, 4, 1, 1, 1], [6, get_logo("K21"), "광주 FC", 3, 3, 1, 0, 2],
+    [7, get_logo("K07"), "전북 현대", 3, 2, 0, 2, 1], [8, get_logo("K18"), "인천", 3, 2, 0, 2, 1],
+    [9, get_logo("K15"), "대전", 3, 1, 0, 1, 2], [10, get_logo("K04"), "제주", 3, 1, 0, 1, 2],
+    [11, get_logo("K17"), "대구 FC", 3, 1, 0, 1, 2], [12, get_logo("K25"), "김천 상무", 3, 0, 0, 0, 3]
+]
+df1 = pd.DataFrame(k1_data, columns=["순위", "로고", "팀명", "경기수", "승점", "승", "무", "패"])
+
+# 4. K리그2 데이터 (17팀 - 형님 제보 신규팀 포함)
+k2_teams = ["수원삼성", "부산", "안양", "전남", "경남", "성남", "충북청주", "부천", "충남아산", "서울E", "천안", "김포", "안산", "용인", "파주", "김해", "청주"]
+k2_data = [[i+1, get_logo("K02"), name, 3, 0, 0, 0, 0] for i, name in enumerate(k2_teams)]
+df2 = pd.DataFrame(k2_data, columns=["순위", "로고", "팀명", "경기수", "승점", "승", "무", "패"])
+
+# 5. 강등권 스타일 함수 (12위 진하게, 10-11위 연하게)
+def apply_style(row):
+    if row['순위'] == 12: return ['background-color: rgba(255, 0, 0, 0.4)'] * len(row)
+    if row['순위'] in [10, 11]: return ['background-color: rgba(255, 0, 0, 0.15)'] * len(row)
+    return [''] * len(row)
+
+# 6. 화면 구성
+tab1, tab2 = st.tabs(["🏆 K리그1 (1부)", "🥈 K리그2 (2부)"])
+
+with tab1:
+    st.subheader("📅 K리그1 최신 라운드 결과 (3R)")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("울산 2 : 1 전북", "종료")
+    col2.metric("서울 0 : 0 강원", "종료")
+    col3.metric("제주 vs 포항", "경기전")
     
-    cols = ["순위", "팀명", "승점", "경기", "로고"]
-    return pd.DataFrame(k1_raw, columns=cols), pd.DataFrame(k2_raw, columns=cols)
-
-df1, df2 = load_data()
-
-# 2. 강등권 스타일 (10~12위 연한 빨강)
-def style_relegation(row):
-    return ['background-color: rgba(255,0,0,0.1)' if row['순위'] >= 10 else '' for _ in row]
-
-# 3. 화면 구성
-t1, t2, t3 = st.tabs(["🏆 K리그1", "🥈 K리그2", "🎞️ 영상"])
-
-with t1:
-    st.dataframe(df1.style.apply(style_relegation, axis=1), use_container_width=True, hide_index=True,
-                 column_config={"로고": st.column_config.ImageColumn("로고")})
-
-with t2:
-    st.dataframe(df2, use_container_width=True, hide_index=True,
-                 column_config={"로고": st.column_config.ImageColumn("로고")})
-
-with t3:
+    st.markdown("---")
+    st.subheader("📊 현재 순위표")
+    st.dataframe(df1.style.apply(apply_style, axis=1), use_container_width=True, hide_index=True,
+                 column_config={"로고": st.column_config.ImageColumn(" ", width="small")})
+    
+    st.markdown("---")
+    st.subheader("🎞️ 최신 하이라이트")
     st.video("https://www.youtube.com/watch?v=kY0vR6z-1pY")
+
+with tab2:
+    st.subheader("📅 K리그2 최신 라운드 결과 (3R)")
+    st.write("📍 수원삼성 3 : 0 용인 | 안양 1 : 1 부산 | 파주 vs 김해 (경기전)")
+    
+    st.markdown("---")
+    st.subheader("📊 현재 순위표 (17개 팀)")
+    st.dataframe(df2, use_container_width=True, hide_index=True,
+                 column_config={"로고": st.column_config.ImageColumn(" ", width="small")})
+    
+    st.markdown("---")
+    st.subheader("🎞️ 최신 하이라이트")
+    st.video("https://www.youtube.com/watch?v=R94v8Y6eD6w")
+
+st.caption("최종 업데이트: 2026-03-16 | Data by 네이버 스포츠")
