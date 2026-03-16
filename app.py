@@ -7,11 +7,11 @@ st.set_page_config(page_title="K-League", page_icon="⚽", layout="wide")
 # 제목 (모바일 한 줄 최적화)
 st.markdown("<h3 style='text-align: center;'>⚽ K리그 실시간 데이터 대시보드</h3>", unsafe_allow_html=True)
 
-# 2. 데이터 구성
+# 2. 데이터 구성 (로고 포함)
 @st.cache_data
-def get_data():
-    # K리그1 데이터 (로고 주소 업데이트)
-    k1_data = [
+def get_league_data():
+    # K리그1 데이터
+    k1 = [
         ["https://www.kleague.com/assets/img/club/club_logo_K01.png", 1, "울산 HD", 3, 9, 3, 0, 0, 7, 2, "WWW--"],
         ["https://www.kleague.com/assets/img/club/club_logo_K21.png", 2, "강원 FC", 3, 7, 2, 1, 0, 5, 2, "WWD--"],
         ["https://www.kleague.com/assets/img/club/club_logo_K09.png", 3, "FC 서울", 3, 6, 2, 0, 1, 4, 3, "WWL--"],
@@ -26,37 +26,40 @@ def get_data():
         ["https://www.kleague.com/assets/img/club/club_logo_K32.png", 12, "김천 상무", 3, 0, 0, 0, 3, 1, 6, "LLL--"]
     ]
     # K리그2 데이터
-    k2_data = [
+    k2 = [
         ["https://www.kleague.com/assets/img/club/club_logo_K02.png", 1, "수원 삼성", 3, 9, 3, 0, 0, 6, 1, "WWW--"],
         ["https://www.kleague.com/assets/img/club/club_logo_K06.png", 2, "부산 IPK", 3, 7, 2, 1, 0, 5, 2, "WWD--"]
     ]
     cols = ["로고", "순위", "팀명", "경기", "승점", "승", "무", "패", "득", "실", "최근5경기"]
-    return pd.DataFrame(k1_data, columns=cols), pd.DataFrame(k2_data, columns=cols)
+    return pd.DataFrame(k1, columns=cols), pd.DataFrame(k2, columns=cols)
 
-df1, df2 = get_data()
+df1, df2 = get_league_data()
 
-# 강등권 강조 스타일 (배경색만)
-def highlight_relegation(row):
+# 강등권 강조 스타일 (순위 10위 이상만 연한 빨강)
+def bg_style(row):
     color = 'background-color: rgba(255, 0, 0, 0.1)' if row['순위'] >= 10 else ''
     return [color] * len(row)
 
 # 3. 화면 구성
-t1, t2, t3 = st.tabs(["🏆 K리그1", "🥈 K리그2", "🎞️ 하이라이트"])
+tab1, tab2, tab3 = st.tabs(["🏆 K리그1", "🥈 K리그2", "🎞️ 영상"])
 
-with t1:
+with tab1:
     st.dataframe(
-        df1.style.apply(highlight_relegation, axis=1),
+        df1.style.apply(bg_style, axis=1),
         use_container_width=True, hide_index=True,
         column_config={"로고": st.column_config.ImageColumn("로고", width="small")}
     )
 
-with t2:
+with tab2:
     st.dataframe(
         df2, use_container_width=True, hide_index=True,
         column_config={"로고": st.column_config.ImageColumn("로고", width="small")}
     )
 
-with t3:
-    st.subheader("📺 최근 경기 하이라이트")
+with tab3:
+    st.subheader("📺 주요 경기 하이라이트")
     st.info("⚽ [3/15] 울산 2 : 1 전북")
-    st.video("
+    st.video("https://www.youtube.com/watch?v=kY0vR6z-1pY")
+
+st.divider()
+st.caption("Last updated: 2026-03-16 | Created by W3akside")
