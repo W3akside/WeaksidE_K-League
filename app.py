@@ -3,32 +3,53 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-st.set_page_config(page_title="W3akside K-League", layout="wide")
-st.title("⚽ W3akside의 K리그 실시간 대시보드")
+# 페이지 설정
+st.set_page_config(page_title="W3akside K-League", page_icon="⚽", layout="wide")
 
-# --- 1. 순위 데이터 가져오는 함수 (크롤링 맛보기) ---
-@st.cache_data(ttl=3600) # 1시간마다 데이터 갱신
-def get_k1_ranking():
-    # 실제로는 여기서 네이버나 공식 홈 정보를 긁어옵니다.
-    # 일단은 구조만 잡고, 형님이 배포 성공하시면 제가 완벽한 주소를 매핑해드릴게요!
-    data = {"순위": [1, 2, 3], "팀명": ["실시간 갱신 중...", "", ""], "승점": [0, 0, 0]}
-    return pd.DataFrame(data)
+st.title("⚽ W3akside의 K리그1 실시간 대시보드")
+st.write("네이버 스포츠 실시간 데이터를 자동으로 가져옵니다.")
 
-# --- 2. 화면 구성 ---
-tab1, tab2 = st.tabs(["🔥 K리그 1", "⚡ K리그 2"])
-
-with tab1:
-    st.header("🏆 K리그 1 실시간 순위")
-    # 여기에 실시간 데이터를 뿌려줍니다.
-    st.write("※ 현재 라운드 데이터 반영 중")
+# 1. 실시간 순위 크롤링 기능
+@st.cache_data(ttl=3600) # 1시간마다 데이터 새로고침
+def get_k_league_ranking():
+    url = "https://sports.news.naver.com/kfootball/record/index.nhn?category=kleague"
+    header = {'User-Agent': 'Mozilla/5.0'}
+    res = requests.get(url, headers=header)
+    soup = BeautifulSoup(res.text, 'html.parser')
     
-    st.subheader("📺 최신 하이라이트")
-    # 'K리그 1 하이라이트' 검색 결과 중 최신 영상을 자동 매핑하는 코드 구역
-    st.video("https://www.youtube.com/watch?v=GmJuAg_KhdQ") # 예시: 최신 골모음
-
-with tab2:
-    st.header("🏆 K리그 2 실시간 순위")
-    st.write("※ 현재 라운드 데이터 반영 중")
+    # 네이버 순위 테이블 찾기
+    table = soup.find('div', {'id': 'regularGroup_table'})
+    rows = table.find_all('tr')
     
-    st.subheader("📺 최신 하이라이트")
-    st.video("https://www.youtube.com/watch?v=z2b_pBfvB80")
+    data = []
+    for row in rows[1:]: # 헤더 제외
+        cols = row.find_all('td')
+        if len(cols) > 1:
+            rank = cols[0].text.strip()
+            # 팀명 찾기 (정규표현식 대신 간단하게 추출)
+            team = row.find('span', {'class': 'name'}).text.strip()
+            match = cols[2].text.strip()
+            point = cols[3].text.strip()
+            win = cols[4].text.strip()
+            draw = cols[5].text.strip()
+            loss = cols[6].text.strip()
+            data.append([rank, team, match, point, win, draw, loss])
+    
+    return pd.DataFrame(data, columns=['순위', '팀명', '경기수', '승점', '승', '무', '패'])
+
+# 2. 화면에 순위표 출력
+try:
+    df = get_k_league_ranking()
+    st.subheader("🏆 2026 K리그1 현재 순위")
+    st.table(df) # 깔끔한 표로 출력
+except Exception as e:
+    st.error(f"데이터를 가져오는 중 오류가 발생했습니다: {e}")
+
+st.divider()
+
+# 3. 하이라이트 영상
+st.subheader("📺 최신 하이라이트")
+# K리그 공식 유튜브나 형님이 좋아하는 영상 주소를 넣으시면 됩니다.
+st.video("https://www.youtube.com/watch?v=kY0vR6z-1pY")
+
+st.info("💡 팁: 깃허브에서 코드를 수정하면 폰에 있는 앱도 자동으로 바뀝니다!")
