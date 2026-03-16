@@ -41,4 +41,6 @@ with t1:
 with t2:
     st.subheader("📅 K리그2 최신 결과")
     st.dataframe(pd.DataFrame(res2), use_container_width=True, hide_index=True, column_config={"영상": st.column_config.LinkColumn("하이라이트", display_text="보기")})
-    st.subheader("📊 K리그2 현재 순
+    st.subheader("📊 K리그2 현재 순위 (17개 팀)")
+    # 2. is_k1=False를 넘겨주어 K리그2는 색상 없이 출력
+    st.dataframe(pd.DataFrame(k2_data, columns=["순위","로고","팀명","경기수","승점","승","무","패"]).style.apply(stl, is_k1=False, axis=1), use_container_width=True, hide_index=True, height=635, column_config={"로고": st.column_config.ImageColumn(" "), "팀명": st.column_config.Column(width="medium")})
