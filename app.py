@@ -39,4 +39,4 @@ with t2:
     st.dataframe(pd.DataFrame(res2), use_container_width=True, hide_index=True, column_config={"영상": st.column_config.LinkColumn("하이라이트", display_text="보기")})
     st.subheader("📊 K리그2 현재 순위 (17개 팀)")
     # 17개 팀이 모두 보일 수 있도록 충분한 높이(700) 부여
-    st.dataframe(pd.DataFrame(res2), use_container_width=True, hide_index=True, column_config={"영상": st.column_config.LinkColumn("하이라이트", display_text="보기")})
+    st.dataframe(pd.DataFrame(k2_data, columns=["순위","로고","팀명","경기수","승점","승","무","패"]).style.apply(stl, axis=1), use_container_width=True, hide_index=True, height=700, column_config={"로고": st.column_config.ImageColumn(" "), "팀명": st.column_config.Column(width="medium")})
