@@ -15,7 +15,7 @@ def stl(r, is_k1=True):
         elif r['순위'] in [10, 11]: bg = 'rgba(255,0,0,0.15)'
     return [f'background-color: {bg}; text-align: center;'] * 8
 
-# --- 데이터 선언 (현재 데이터 기준) ---
+# --- 데이터 선언 ---
 r1_raw = "03.14 14:00,울산,2:1,전북,https://youtu.be/kY0vR6z-1pY|03.14 16:30,서울,0:0,강원,https://youtu.be/kY0vR6z-1pY|03.15 14:00,광주,1:2,포항,https://youtu.be/kY0vR6z-1pY|03.15 16:30,인천,1:1,대전,https://youtu.be/kY0vR6z-1pY|03.16 19:00,수원 FC,경기전,대구,|03.16 19:30,제주,경기전,김천,"
 res1 = [dict(zip(['일시','홈','점수','원정','영상'], x.split(','))) for x in r1_raw.split('|')]
 
@@ -27,28 +27,39 @@ res2 = [dict(zip(['일시','홈','점수','원정','영상'], x.split(','))) for
 k2_n = "수원삼성,부산,안양,전남,경남,성남,충북청주,부천,충남아산,서울E,천안,김포,안산,용인,파주,김해,청주FC".split(',')
 k2_data = [[i+1,lg("K02"),n,3,4,1,1,1] for i,n in enumerate(k2_n)]
 
-# --- 라운드 자동 계산 (순위표의 '경기수' 데이터 활용) ---
-rd1 = k1_data[0][3] # K1 1위 팀의 경기수
-rd2 = k2_data[0][3] # K2 1위 팀의 경기수
+# 라운드 자동 계산
+rd1 = k1_data[0][3]
+rd2 = k2_data[0][3]
 
-# --- 화면 출력부 ---
-t1, t2 = st.tabs(["🏆 K리그1", "🥈 K리그2"])
+# --- 설정 도구 ---
+# 1. 경기결과 표 설정 (너비 균일화)
+res_cfg = {
+    "일시": st.column_config.Column(width="medium"),
+    "홈": st.column_config.Column(width="medium"),
+    "점수": st.column_config.Column(width="small"),
+    "원정": st.column_config.Column(width="medium"),
+    "영상": st.column_config.LinkColumn("하이라이트", display_text="보기", width="small")
+}
 
-c_cfg = {
+# 2. 순위표 설정
+rank_cfg = {
     "로고": st.column_config.ImageColumn(" ", width="small"),
     "팀명": st.column_config.Column(width="medium")
 }
 
+# --- 화면 출력부 ---
+t1, t2 = st.tabs(["🏆 K리그1", "🥈 K리그2"])
+
 with t1:
-    # 요청하신 대로 라운드 포함 제목 수정
     st.subheader(f"📅 K리그1 {rd1}라운드 경기결과")
-    st.dataframe(pd.DataFrame(res1), use_container_width=True, hide_index=True, column_config={"영상": st.column_config.LinkColumn("하이라이트", display_text="보기")})
+    # K리그1 결과 표에도 너비 설정을 적용했습니다.
+    st.dataframe(pd.DataFrame(res1), use_container_width=True, hide_index=True, column_config=res_cfg)
     st.subheader("📊 K리그1 현재 순위")
-    st.dataframe(pd.DataFrame(k1_data, columns=["순위","로고","팀명","경기수","승점","승","무","패"]).style.apply(stl, is_k1=True, axis=1), use_container_width=True, hide_index=True, height=455, column_config=c_cfg)
+    st.dataframe(pd.DataFrame(k1_data, columns=["순위","로고","팀명","경기수","승점","승","무","패"]).style.apply(stl, is_k1=True, axis=1), use_container_width=True, hide_index=True, height=455, column_config=rank_cfg)
 
 with t2:
-    # 요청하신 대로 라운드 포함 제목 수정
     st.subheader(f"📅 K리그2 {rd2}라운드 경기결과")
-    st.dataframe(pd.DataFrame(res2), use_container_width=True, hide_index=True, column_config={"영상": st.column_config.LinkColumn("하이라이트", display_text="보기")})
+    # K리그2와 동일한 설정을 공유합니다.
+    st.dataframe(pd.DataFrame(res2), use_container_width=True, hide_index=True, column_config=res_cfg)
     st.subheader("📊 K리그2 현재 순위")
-    st.dataframe(pd.DataFrame(k2_data, columns=["순위","로고","팀명","경기수","승점","승","무","패"]).style.apply(stl, is_k1=False, axis=1), use_container_width=True, hide_index=True, height=635, column_config=c_cfg)
+    st.dataframe(pd.DataFrame(k2_data, columns=["순위","로고","팀명","경기수","승점","승","무","패"]).style.apply(stl, is_k1=False, axis=1), use_container_width=True, hide_index=True, height=635, column_config=rank_cfg)
